@@ -8,7 +8,7 @@
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "${workspaceFolder}/word_detector.exe",
+        "program": "${workspaceFolder}/hello_world.exe",
         "args": [],
         "stopAtEntry": true,
         "cwd": "${workspaceFolder}",

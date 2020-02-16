@@ -4,10 +4,10 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build word detector",
+            "label": "build hello world",
             "type": "shell",
             "command": "g++",
-            "args": ["-g", "-o", "word_detector", "word_detector.cpp"],
+            "args": ["-g", "-o", "hello_world", "hello_world.cpp"],
             "group": {
                 "kind": "build",
                 "isDefault": true
