@@ -2,15 +2,18 @@
 
 int main()
 {
+    int number_of_words = 0;
     string previous = ""; // previous word; initialized to "not a word"
     string current;       // current word
 
     // read a stream of words
     while(cin >> current)
     {
+        ++number_of_words; // increase word count
         if (previous == current) //check if the word is the same as last
         {
-            cout << "repeated word: " << current << '\n';
+            cout << "word number: " << number_of_words
+            << " repeated words: " << current << '\n';
         }
         previous = current;
     }  
