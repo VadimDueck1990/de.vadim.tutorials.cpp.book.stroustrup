@@ -2,21 +2,39 @@
 
 int main()
 {
-    cout << "Please enter expression (we can handle + and -): ";
+    cout << "Please enter expression (we can handle +, -, * and /)\n";
+    cout << "add an x to end expression (e.g 1+2*3x): ";
     int lval = 0;
     int rval;
-    char op;
-    int res;
 
-    // read something like 1 + 3
-    cin >> lval >> op >> rval;
+    cin >> lval;    // read leftmost operand
+    if(!cin) error("no first operand");
 
-    if(op == '+')
-        res = lval + rval; // adition
-    else if(op == '-')
-        res = lval - rval; // subtraction
+    // read operator and right-hand operand repeatedly
+    for (char op; cin >> op;)
+    {
+        if(op != 'x') cin >> rval;
+        if(!cin) error("no second operand");
 
-    cout << "Result: " << res << '\n';
-    keep_window_open();
-    return 0;
+        switch(op)
+        {
+            case '+':
+                lval += rval;   // add: lval = lval + rval
+                break;
+            case '-':
+                lval -= rval;   // subtract: lval = lval - rval
+                break;
+            case '*':
+                lval *= rval;   // multiply: lval = lval * rval
+                break;
+            case '/':
+                lval /= rval;   // divide: lval = lval / rval
+                break;
+            default:            // not another operator: print result
+                cout << "Result: " << lval << '\n';
+                keep_window_open();
+                return 0;
+        }
+    }
+    error("bad expression");
 }
