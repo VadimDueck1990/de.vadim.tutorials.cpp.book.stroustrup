@@ -38,3 +38,10 @@ int main()
     }
     error("bad expression");
 }
+
+class Token // a very simple user-defined type
+{
+    public:
+        char kind;
+        double value;
+}
