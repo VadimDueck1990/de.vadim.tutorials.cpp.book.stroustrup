@@ -6,8 +6,10 @@
 #include "std_lib_facilities.h"
 
 //------------------------------------------------------------------------------
-// used as Token.kind = number;
-const char number = '8';
+// variables and names
+const string prompt = "> "; // used to indicate the program is waiting for input
+const string result = "= ";  // used to indicate that what follows is a result
+const char number = '8';    // t.kind == number means that t is a number token
 const char quit = 'q';      // t.kind == quit means that t is a quit token
 const char print = ';';     // t.kind == print means that t is a print token
 
@@ -209,12 +211,12 @@ double expression()
 }
 
 //------------------------------------------------------------------------------
-
-int main() try
+// expression evaluation loop function
+void calculate()
 {
     while (cin)
-    { // MAIN-PROGRAMM-LOOP!!!!!!!!!!!
-        cout << "> ";
+    { 
+        cout << prompt;
         Token t = ts.get();
 
         //see if there is a quit after print
@@ -224,12 +226,18 @@ int main() try
         // quit
         if (t.kind == quit)
         {
-            keep_window_open();
-            return 0;
+            return;
         }
         ts.putback(t);
-        cout << "= " << expression() << '\n';
+        cout << result << expression() << '\n';
     }
+}
+
+//------------------------------------------------------------------------------
+
+int main() try
+{
+    calculate();
     keep_window_open();
     return 0;
 }
