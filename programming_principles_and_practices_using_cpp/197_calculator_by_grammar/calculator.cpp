@@ -169,23 +169,25 @@ try
 {
     double val = 0;
     while (cin) {
+        cout << "> ";
         Token t = ts.get();
 
         if (t.kind == 'q') break; // 'q' for quit
         if (t.kind == ';')        // ';' for "print now"
-            cout << "=" << val << '\n';
+            cout << "= " << val << '\n';
         else
             ts.putback(t);
         val = expression();
     }
 }
-catch (exception& e) {
-    cerr << "error: " << e.what() << '\n'; 
+catch (runtime_error& e) {
+    cerr << e.what() << '\n';
+    keep_window_open("~~");
     return 1;
 }
-catch (...) {
-    cerr << "Oops: unknown exception!\n"; 
-    return 2;
+catch (exception& e) {
+    cerr << "error: " << e.what() << '\n';
+    return 1;
 }
 
 //------------------------------------------------------------------------------
