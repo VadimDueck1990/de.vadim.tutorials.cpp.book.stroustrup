@@ -1,7 +1,50 @@
-//
-// This is example code from Chapter 6.7 "Trying the second version" of
-// "Programming -- Principles and Practice Using C++" by Bjarne Stroustrup
-//
+/*
+    Simple calculator
+
+    Revision history:
+
+        Revised by Bjarne Stroustrup May 2007
+        Revised by Bjarne Stroustrup August 2006
+        Revised by Bjarne Stroustrup August 2004
+        Originally written by Bjarne Stroustrup
+            (bs@cs.tamu.edu) Spring 2004.
+
+    This program implements a basic expression calculator.
+    Input from cin; output to cout.
+
+    The grammar for input is:
+
+    Statement:
+        Expression
+        Print
+        Quit
+
+    Print:
+        ;
+
+    Quit:
+        q 
+
+    Expression:
+        Term
+        Expression + Term
+        Expression - Term
+    Term:
+        Primary
+        Term * Primary
+        Term / Primary
+        Term % Primary
+    Primary:
+        Number
+        ( Expression )
+        - Primary
+        + Primary
+    Number:
+        floating-point-literal
+
+
+        Input comes from cin through the Token_stream called ts.
+*/
 
 #include "std_lib_facilities.h"
 
@@ -13,6 +56,7 @@ const char number = '8';    // t.kind == number means that t is a number token
 const char quit = 'q';      // t.kind == quit means that t is a quit token
 const char print = ';';     // t.kind == print means that t is a print token
 
+//------------------------------------------------------------------------------
 class Token
 {
 public:
@@ -29,20 +73,19 @@ public:
 };
 
 //------------------------------------------------------------------------------
-
 class Token_stream
 {
 public:
-    Token_stream();        // make a Token_stream that reads from cin
-    Token get();           // get a Token (get() is defined elsewhere)
-    void putback(Token t); // put a Token back
+    Token_stream();         // make a Token_stream that reads from cin
+    Token get();            // get a Token (get() is defined elsewhere)
+    void putback(Token t);  // put a Token back
+    void ignore(char c);    // discard characters up to and including a c
 private:
     bool full;    // is there a Token in the buffer?
     Token buffer; // here is where we keep a Token put back using putback()
 };
 
 //------------------------------------------------------------------------------
-
 // The constructor just sets full to indicate that the buffer is empty:
 Token_stream::Token_stream()
     : full(false), buffer(0) // no Token in buffer
@@ -50,7 +93,6 @@ Token_stream::Token_stream()
 }
 
 //------------------------------------------------------------------------------
-
 // The putback() member function puts its argument back into the Token_stream's buffer:
 void Token_stream::putback(Token t)
 {
@@ -61,7 +103,25 @@ void Token_stream::putback(Token t)
 }
 
 //------------------------------------------------------------------------------
+// c represents the kind of Token
+void Token_stream::ignore(char c)
+{
+    // first look in buffer
+    if (full && c == buffer.kind)
+    {
+        full = false;
+        return;
+    }
+    full = false;
 
+    // now search input:
+    char ch = 0;
+    while(cin >> ch)
+        if (ch == c)
+            return;
+}
+
+//------------------------------------------------------------------------------
 Token Token_stream::get()
 {
     if (full)
@@ -108,15 +168,12 @@ Token Token_stream::get()
 }
 
 //------------------------------------------------------------------------------
-
 Token_stream ts; // provides get() and putback()
 
 //------------------------------------------------------------------------------
-
 double expression(); // declaration so that primary() can call expression()
 
 //------------------------------------------------------------------------------
-
 // deal with numbers and parentheses
 double primary()
 {
@@ -143,7 +200,6 @@ double primary()
 }
 
 //------------------------------------------------------------------------------
-
 // deal with *, /, and %
 double term()
 {
@@ -184,7 +240,6 @@ double term()
 }
 
 //------------------------------------------------------------------------------
-
 // deal with + and -
 double expression()
 {
@@ -212,10 +267,17 @@ double expression()
 
 //------------------------------------------------------------------------------
 // expression evaluation loop function
+void clean_up_mess()
+{
+    ts.ignore(print);
+}
+//------------------------------------------------------------------------------
+// expression evaluation loop function
 void calculate()
 {
     while (cin)
-    { 
+    try
+    {
         cout << prompt;
         Token t = ts.get();
 
@@ -229,12 +291,16 @@ void calculate()
             return;
         }
         ts.putback(t);
-        cout << result << expression() << '\n';
+        cout << result << expression() << endl;
+    }
+    catch(const std::exception& e)
+    {
+        cerr << e.what() << endl;   // write error message
+        clean_up_mess();
     }
 }
 
 //------------------------------------------------------------------------------
-
 int main() try
 {
     calculate();
@@ -247,9 +313,9 @@ catch (runtime_error &e)
     keep_window_open("~~");
     return 1;
 }
-catch (exception &e)
+catch (...)
 {
-    cerr << "error: " << e.what() << '\n';
+    cerr << "exception \n";
     keep_window_open("~~");
     return 2;
 }
