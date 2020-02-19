@@ -1,44 +1,49 @@
 /*
     Simple calculator
 
-    Revision history:
-
-        Revised by Bjarne Stroustrup May 2007
-        Revised by Bjarne Stroustrup August 2006
-        Revised by Bjarne Stroustrup August 2004
-        Originally written by Bjarne Stroustrup
-            (bs@cs.tamu.edu) Spring 2004.
+    Originally pirated by:
+    Vadim Dück 2020, all rights reserved
 
     This program implements a basic expression calculator.
     Input from cin; output to cout.
 
     The grammar for input is:
 
-    Statement:
-        Expression
+    Calculation:
         Print
         Quit
+        Statement
+        Calculation Statement    
 
-    Print:
-        ;
+    Print:          Quit:
+        ;               q
 
-    Quit:
-        q 
+ 
+
+    Statement:
+        Declaration
+        Expression
+
+    Declaration:
+        "let" Name "=" Expression
 
     Expression:
         Term
         Expression + Term
         Expression - Term
+
     Term:
         Primary
         Term * Primary
         Term / Primary
         Term % Primary
+
     Primary:
         Number
         ( Expression )
         - Primary
         + Primary
+
     Number:
         floating-point-literal
 
@@ -57,19 +62,16 @@ const char quit = 'q';      // t.kind == quit means that t is a quit token
 const char print = ';';     // t.kind == print means that t is a print token
 
 //------------------------------------------------------------------------------
+// prototypes
+double expression(); // declaration so that primary() can call expression()
+//------------------------------------------------------------------------------
 class Token
 {
 public:
-    char kind;     // what kind of token
-    double value;  // for numbers: a value
-    Token(char ch) // make a Token from a char
-        : kind(ch), value(0)
-    {
-    }
-    Token(char ch, double val) // make a Token from a char and a double
-        : kind(ch), value(val)
-    {
-    }
+    char kind;    // what kind of token
+    double value; // for numbers: a value
+    Token(char ch) : kind(ch), value(0) {}
+    Token(char ch, double val) : kind(ch), value(val) {}
 };
 
 //------------------------------------------------------------------------------
@@ -100,25 +102,6 @@ void Token_stream::putback(Token t)
         error("putback() into a full buffer");
     buffer = t;  // copy t to buffer
     full = true; // buffer is now full
-}
-
-//------------------------------------------------------------------------------
-// c represents the kind of Token
-void Token_stream::ignore(char c)
-{
-    // first look in buffer
-    if (full && c == buffer.kind)
-    {
-        full = false;
-        return;
-    }
-    full = false;
-
-    // now search input:
-    char ch = 0;
-    while (cin >> ch)
-        if (ch == c)
-            return;
 }
 
 //------------------------------------------------------------------------------
@@ -168,6 +151,25 @@ Token Token_stream::get()
 }
 
 //------------------------------------------------------------------------------
+// c represents the kind of Token
+void Token_stream::ignore(char c)
+{
+    // first look in buffer
+    if (full && c == buffer.kind)
+    {
+        full = false;
+        return;
+    }
+    full = false;
+
+    // now search input:
+    char ch = 0;
+    while (cin >> ch)
+        if (ch == c)
+            return;
+}
+
+//------------------------------------------------------------------------------
 class Variable
 {
 public:
@@ -180,7 +182,8 @@ Token_stream ts; // provides get() and putback()
 vector<Variable> var_table;
 
 //------------------------------------------------------------------------------
-double get_value(string s) // return the value of the Variable named s
+// return the value of the Variable named s
+double get_value(string s)
 {
     for (const Variable &v : var_table)
     {
@@ -191,8 +194,34 @@ double get_value(string s) // return the value of the Variable named s
 }
 
 //------------------------------------------------------------------------------
-double expression(); // declaration so that primary() can call expression()
+void set_value(string s, double d)
+{
+    for (Variable &v : var_table)
+    {
+        if (v.name == s)
+        {
+            v.value = d;
+            return;
+        }
+    }
+    error("set: undefined variable ", s);
+}
 
+//------------------------------------------------------------------------------
+// TODO: explain function!
+bool is_declared(string var)
+{
+    // TODO: implement
+    return false;
+}
+
+//------------------------------------------------------------------------------
+// TODO: explain function!
+double define_name(string var, double val)
+{
+    // TODO: implement
+    return 0.0;
+}
 //------------------------------------------------------------------------------
 // deal with numbers and parentheses
 double primary()
@@ -200,8 +229,8 @@ double primary()
     Token t = ts.get();
     switch (t.kind)
     {
-    case '(': // handle '(' expression ')'
-    {
+    case '(':
+    { // handle '(' expression ')'
         double d = expression();
         t = ts.get();
         if (t.kind != ')')
@@ -287,7 +316,28 @@ double expression()
 }
 
 //------------------------------------------------------------------------------
-// expression evaluation loop function
+// TODO: explain this function
+double declaration()
+{
+    // TODO: implement
+    return 0.0;
+}
+//------------------------------------------------------------------------------
+// defines whether calculate() has to deal with declaration() or expression()
+double statement()
+{
+    Token t = ts.get();
+    switch (t.kind)
+    {
+    case let:
+        return declaration();
+    default:
+        ts.putback(t);
+        return expression();
+    }
+}
+//------------------------------------------------------------------------------
+// prepare the programm for the next calculation after a crash
 void clean_up_mess()
 {
     ts.ignore(print);
@@ -302,7 +352,7 @@ void calculate()
             cout << prompt;
             Token t = ts.get();
 
-            //see if there is a quit after print
+            //discard all prints
             while (t.kind == print)
                 t = ts.get();
 
@@ -312,7 +362,7 @@ void calculate()
                 return;
             }
             ts.putback(t);
-            cout << result << expression() << endl;
+            cout << result << statement() << endl;
         }
         catch (const std::exception &e)
         {
