@@ -55,11 +55,16 @@
 
 //------------------------------------------------------------------------------
 // variables and names
-const string prompt = "> "; // used to indicate the program is waiting for input
-const string result = "= "; // used to indicate that what follows is a result
-const char number = '8';    // t.kind == number means that t is a number token
-const char quit = 'q';      // t.kind == quit means that t is a quit token
-const char print = ';';     // t.kind == print means that t is a print token
+const string declkey    = "let"; // declaration keyword
+const string prompt     = "> "; // used to indicate the program is waiting for input
+const string result     = "= "; // used to indicate that what follows is a result
+
+const char number   = '8';  // t.kind == number means that t is a number token
+const char quit     = 'q';  // t.kind == quit means that t is a quit token
+const char print    = ';';  // t.kind == print means that t is a print token
+const char name     = 'a';  // name token
+const char let      = 'L';  // declaration token
+
 
 //------------------------------------------------------------------------------
 // prototypes
@@ -208,19 +213,21 @@ void set_value(string s, double d)
 }
 
 //------------------------------------------------------------------------------
-// TODO: explain function!
+// check if given variable is already intialized
 bool is_declared(string var)
 {
-    // TODO: implement
+    for(const Variable& v : var_table)
+        if (v.name == var) return true;
     return false;
 }
 
 //------------------------------------------------------------------------------
-// TODO: explain function!
+// add (var/val) to var_table
 double define_name(string var, double val)
 {
-    // TODO: implement
-    return 0.0;
+    if(is_declared(var))
+        error(var, " declared twice");
+    var_table.push_back(Variable{var, val});
 }
 //------------------------------------------------------------------------------
 // deal with numbers and parentheses
@@ -316,11 +323,22 @@ double expression()
 }
 
 //------------------------------------------------------------------------------
-// TODO: explain this function
+// assuming, that we previously seen "let", we declare a variable called
+// "name" with the initial value "expression"
 double declaration()
 {
-    // TODO: implement
-    return 0.0;
+    Token t = ts.get();
+    if(t.kind != name)      // check ifdeclaration contains "name" token
+        error("name expected in declaration");
+    string var_name = t.name;
+
+    Token t2 = ts.get();    // check if declaration contains "assign value" token
+    if(t2.kind != '=')
+        error("= missing in declaration of ", var_name);
+
+    double d = expression();
+    define_name(var_name, d);
+    return d;
 }
 //------------------------------------------------------------------------------
 // defines whether calculate() has to deal with declaration() or expression()
